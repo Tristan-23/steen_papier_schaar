@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rock Paper Scissors</title>
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const header = document.createElement("header");
+      let highestWinStreak =
+        parseInt(localStorage.getItem("highestWinStreak")) || 0;
+      let highestLossStreak =
+        parseInt(localStorage.getItem("highestLossStreak")) || 0;
+      let currentResults = JSON.parse(localStorage.getItem("results")) || [];
+      let currentWinStreak = 0;
+      let currentLossStreak = 0;
+      let currentStreakType = "win";
+
+      updateHtml();
+
+      function updateHtml() {
+        const displayStreak =
+          currentStreakType === "win" ? highestWinStreak : highestLossStreak;
+
+        header.innerHTML = `
+        <h1>Welcome to ROCK PAPER SCISSORS</h1>
+        <div class='my-values'>
+          <h2>Highest ${
+            currentStreakType === "win" ? "win" : "loss"
+          } streak : ${displayStreak}</h2>
+          <h2>Current session win streak : ${currentWinStreak}</h2>
+          <h2>Current session loss streak : ${currentLossStreak}</h2>
+        </div>
+        <div>
+          <button onclick='startMyGame("rock")'>Rock</button>
+          <button onclick='startMyGame("paper")'>Paper</button>
+          <button onclick='startMyGame("scissors")'>Scissors</button>
+        </div>
+        <div>
+          <button onclick='toggleStreakType()'>Show ${
+            currentStreakType === "win" ? "lose" : "win"
+          }</button>
+          <button onclick='hideTheThings()'>Hide My Values</button>
+        </div>
+        <div>
+          <button onclick='hideMyResults()'>Hide The Results</button>
+          <button onclick='clearMyResults()'>Clear The Results</button>
+        </div>
+        <h2>Game History :</h2>
+        <div id="result"></div>
+      `;
+        document.body.prepend(header);
+        // Display existing results
+        displayExistingResults();
+      }
+
+      function startMyGame(playerChoice) {
+        const choices = ["rock", "paper", "scissors"];
+        if (!choices.includes(playerChoice)) {
+          console.error(
+            "Invalid choice. Please choose rock, paper, or scissors."
+          );
+          return;
+        }
+
+        const computerChoice =
+          choices[Math.floor(Math.random() * choices.length)];
+
+        let result;
+        if (playerChoice === computerChoice) {
+          result = "It's a tie!";
+          resetStreaks();
+        } else if (
+          (playerChoice === "rock" && computerChoice === "scissors") ||
+          (playerChoice === "paper" && computerChoice === "rock") ||
+          (playerChoice === "scissors" && computerChoice === "paper")
+        ) {
+          result = "You win!";
+          incrementWinStreak();
+        } else {
+          result = "You lose!";
+          incrementLossStreak();
+        }
+
+        // Update HTML to reflect result
+        updateHtml();
+        displayResult(
+          `You chose ${playerChoice}. Computer chose ${computerChoice}. ${result}`
+        );
+      }
+
+      function toggleStreakType() {
+        currentStreakType = currentStreakType === "win" ? "loss" : "win";
+        updateHtml();
+      }
+
+      function hideTheThings() {
+        const valuesDiv = document.querySelector(".my-values");
+        valuesDiv.classList.toggle("hidden");
+      }
+
+      function hideMyResults() {
+        const resultDiv = document.getElementById("result");
+        resultDiv.classList.toggle("hidden");
+      }
+
+      function displayResult(message) {
+        currentResults.push(message);
+        localStorage.setItem("results", JSON.stringify(currentResults));
+        displayExistingResults();
+      }
+
+      function displayExistingResults() {
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "<ol>";
+        currentResults.forEach((result) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = result;
+          resultDiv.querySelector("ol").appendChild(listItem);
+        });
+        resultDiv.innerHTML += "</ol>";
+      }
+
+      function resetStreaks() {
+        currentWinStreak = 0;
+        currentLossStreak = 0;
+      }
+
+      function incrementWinStreak() {
+        currentWinStreak++;
+        currentLossStreak = 0;
+
+        if (currentWinStreak > highestWinStreak) {
+          highestWinStreak = currentWinStreak;
+          localStorage.setItem("highestWinStreak", highestWinStreak);
+        }
+      }
+
+      function incrementLossStreak() {
+        currentLossStreak++;
+        currentWinStreak = 0;
+
+        if (currentLossStreak > highestLossStreak) {
+          highestLossStreak = currentLossStreak;
+          localStorage.setItem("highestLossStreak", highestLossStreak);
+        }
+      }
+
+      function clearMyResults() {
+        currentResults = [];
+        localStorage.removeItem("results");
+        updateHtml();
+      }
+    </script>
+  </body>
+</html>
